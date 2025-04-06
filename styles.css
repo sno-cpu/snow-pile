@@ -1,0 +1,75 @@
+body {
+    margin: 0;
+    background-color: rgb(238,174,202);
+    background: linear-gradient(48deg, rgba(238,174,202,1) 26%, rgba(167,184,226,1) 64%, rgba(148,187,233,1) 100%);;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+}
+
+.ui-container {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
+}
+
+#symmetrySlider {
+    width: 200px;
+}
+
+#colorPalette {
+    display: flex;
+    gap: 5px;
+}
+
+.colorBtn {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    border: none;
+    cursor: pointer;
+}
+
+.colorBtn[data-color="red"] { background-color: #ff0000; }
+.colorBtn[data-color="yellow"] { background-color: #ffff00; }
+.colorBtn[data-color="blue"] { background-color: #0000ff; }
+.colorBtn[data-color="#00ff00"] { background-color: #00ff00; }
+.colorBtn[data-color="black"] { background-color: #000000; }
+
+canvas {
+    border: 3px solid #ddd;
+    background: white;
+    overflow: hidden; /* Ensure content outside the border is hidden */
+}
+
+.controls {
+    margin-top: 10px;
+    display: flex;
+    gap: 10px;
+}
+
+button {
+    padding: 8px 12px;
+    border: none;
+    cursor: pointer;
+    font-size: 14px;
+    border-radius: 30px;
+}
+
+#releaseBtn {
+    background-color: #0072b079;
+    color: white;
+}
+
+#quote {
+    font-family: 'Arial', sans-serif;
+    font-weight: bold;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+#drawAgainBtn:hover {
+    background-color: #005f8a;
+}
