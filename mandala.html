@@ -8,7 +8,8 @@
 </head>
 <body>
     <div class="ui-container">
-        <input type="range" id="symmetrySlider" min="1" max="8" step="1" value="4">
+        <input type="range" id="symmetrySlider" min="1" max="8" step="1" value="6">
+<div id="symmetryBubble"></div>
         <div id="colorPalette">
             <button class="colorBtn" data-color="red"></button>
             <button class="colorBtn" data-color="yellow"></button>
@@ -20,12 +21,20 @@
     
     <canvas id="mandalaCanvas"></canvas>
 
+    <div id="quote" style="display: none;"></div>
+    <button id="drawAgainBtn" style="display: none;">Draw Again</button>   
+
     <div class="controls">
         <button id="undoBtn">Undo</button>
         <button id="clearBtn">Clear</button>
         <button id="releaseBtn">Let Go</button>
+        <button onclick="document.getElementById('audio').play()">Play Sound</button>
     </div>
 
     <script src="script.js"></script>
+    <audio id="audio" autoplay loop>
+        <source src="bowls.mp3" type="audio/mpeg">
+        Your browser does not support the audio element.
+    </audio>
 </body>
 </html>

@@ -1,41 +1,58 @@
 const canvas = document.getElementById("mandalaCanvas");
 const ctx = canvas.getContext("2d");
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight * 0.7;
+
 const colorButtons = document.querySelectorAll(".colorBtn");
 const symmetrySlider = document.getElementById("symmetrySlider");
 const undoBtn = document.getElementById("undoBtn");
 const clearBtn = document.getElementById("clearBtn");
 const releaseBtn = document.getElementById("releaseBtn");
+const symmetryBubble = document.getElementById("symmetryBubble");
 
-canvas.width = window.innerWidth;
-canvas.height = window.innerHeight * 0.7;
+
 
 let drawing = false;
-let symmetry = 4;
+let symmetry = 6;
 let currentColor = "red";
 let paths = [];
-let lastPoint = null; // Track the last point for interpolation
+let lastPoint = null;
+let isReleased = false;
+let bubbleFadeTimeout;
 
-// Update symmetry slices
+
 symmetrySlider.addEventListener("input", (e) => {
     symmetry = parseInt(e.target.value);
+    updateSymmetryBubble(e.target);
 });
 
-// Change color selection
+function updateSymmetryBubble(slider) {
+    const rect = slider.getBoundingClientRect();
+    const thumbPosition = ((slider.value - slider.min) / (slider.max - slider.min)) * rect.width;
+    symmetryBubble.style.left = `${thumbPosition}px`;
+    symmetryBubble.textContent = slider.value;
+    symmetryBubble.style.opacity = "1";
+
+    clearTimeout(bubbleFadeTimeout);
+    bubbleFadeTimeout = setTimeout(() => {
+        symmetryBubble.style.opacity = "0";
+    }, 1000);
+}
+
 colorButtons.forEach((btn) => {
     btn.addEventListener("click", () => {
         currentColor = btn.dataset.color;
     });
 });
 
-// Start drawing
 canvas.addEventListener("mousedown", (e) => {
+    if (isReleased) return;
     drawing = true;
-    paths.push({ points: [], symmetry }); // Store symmetry with each stroke
+    paths.push({ points: [], symmetry });
 });
 
 canvas.addEventListener("mousemove", (e) => {
-    if (!drawing) return;
-
+    if (isReleased || !drawing) return;
     const rect = canvas.getBoundingClientRect();
     const x = e.clientX - rect.left - canvas.width / 2;
     const y = e.clientY - rect.top - canvas.height / 2;
@@ -54,32 +71,35 @@ canvas.addEventListener("mousemove", (e) => {
 });
 
 canvas.addEventListener("mouseup", () => {
+    if (isReleased) return;
     drawing = false;
-    lastPoint = null; // Reset last point
+    lastPoint = null;
 });
 
-// Undo last stroke
 undoBtn.addEventListener("click", () => {
+    if (isReleased) return;
     paths.pop();
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     redrawCanvas();
 });
 
-// Clear canvas
 clearBtn.addEventListener("click", () => {
+    if (isReleased) return;
     paths = [];
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     redrawCanvas();
 });
 
-// Let Go - starts river animation
 releaseBtn.addEventListener("click", () => {
+    if (isReleased) return;
+    isReleased = true;
     fadeOutMandalas();
 });
 
-// Interpolate points for smoother lines
+
+
 function interpolatePoints(x1, y1, x2, y2, color) {
-    const steps = 10; // Number of interpolation steps
+    const steps = 10;
     const dx = (x2 - x1) / steps;
     const dy = (y2 - y1) / steps;
 
@@ -91,7 +111,6 @@ function interpolatePoints(x1, y1, x2, y2, color) {
     }
 }
 
-// Function to draw symmetry
 function drawSymmetricPoints(x, y, color, symmetryValue) {
     ctx.fillStyle = color;
     for (let i = 0; i < symmetryValue; i++) {
@@ -99,14 +118,13 @@ function drawSymmetricPoints(x, y, color, symmetryValue) {
         const rotatedX = x * Math.cos(angle) - y * Math.sin(angle);
         const rotatedY = x * Math.sin(angle) + y * Math.cos(angle);
         ctx.beginPath();
-        ctx.arc(rotatedX + canvas.width / 2, rotatedY + canvas.height / 2, 3, 0, Math.PI * 2); // Reduced radius to 2
+        ctx.arc(rotatedX + canvas.width / 2, rotatedY + canvas.height / 2, 3, 0, Math.PI * 2);
         ctx.fill();
     }
 }
 
-// Redraw the canvas after undo or clear
 function redrawCanvas() {
-    drawCircularBorder(); // Ensure the circular border is redrawn
+    drawCircularBorder();
     paths.forEach((stroke) => {
         stroke.points.forEach((point) => {
             drawSymmetricPoints(point.x, point.y, point.color, stroke.symmetry);
@@ -114,7 +132,6 @@ function redrawCanvas() {
     });
 }
 
-// Draw a circular border
 function drawCircularBorder() {
     ctx.beginPath();
     ctx.arc(canvas.width / 2, canvas.height / 2, Math.min(canvas.width, canvas.height) / 2, 0, Math.PI * 2);
@@ -123,90 +140,68 @@ function drawCircularBorder() {
     ctx.stroke();
 }
 
-// Fade out the mandala, show the river, and display a random quote
+
+
 function fadeOutMandalas() {
     let opacity = 1;
     const fadeInterval = setInterval(() => {
-        console.log("Fading out mandalas, current opacity:", opacity); 
         ctx.clearRect(0, 0, canvas.width, canvas.height);
-        
-        ctx.globalAlpha = 1; 
+        ctx.globalAlpha = 1;
         ctx.fillStyle = "#0077b6";
         ctx.fillRect(0, canvas.height / 2, canvas.width, canvas.height / 2);
 
-        // Draw the fading mandala and circular border
         if (opacity > 0) {
-            ctx.globalAlpha = opacity; 
+            ctx.globalAlpha = opacity;
             redrawCanvas();
         }
 
-        opacity -= 0.1; // Gradually reduce opacity
+        opacity -= 0.1;
         if (opacity <= 0) {
             clearInterval(fadeInterval);
-            ctx.globalAlpha = 1; // Reset alpha to ensure no lingering transparency
-            displayQuoteAndButton(); // Show quote and button after fade-out
+            ctx.globalAlpha = 1;
+            displayQuoteAndButton();
         }
     }, 50);
 }
 
-// Display a random quote and "Draw Again" button
 function displayQuoteAndButton() {
     const quotes = [
-        "The journey is the reward.",
-        "Creativity takes courage.",
-        "Art is freedom.",
-        "Every artist was first an amateur.",
-        "The soul never thinks without an image."
+        "“You can only lose what you cling to.”<br>— Buddha",
+        "“Letting go takes a lot of courage sometimes. But once you let go, happiness comes very quickly. You won't have to go around search for it.”<br>— Thich Nhat Hanh",
+        "“Letting go gives us freedom, and freedom is the only condition for happiness. If, in our heart, we still cling to anything - anger, anxiety, or possessions - we cannot be free.”<br>― Thich Nhat Hanh",
+        "“If you know how to let go and be at peace, you know everything you need to know about living in the world.”<br>– Ajahn Brahm",
+        "“Life isn't heavy when you know how to let go.“<br>— Ajahn Brahm",
     ];
     const randomQuote = quotes[Math.floor(Math.random() * quotes.length)];
 
-    // Create quote element
-    const quoteElement = document.createElement("div");
-    quoteElement.id = "quote";
-    quoteElement.textContent = randomQuote;
-    quoteElement.style.position = "absolute";
-    quoteElement.style.top = "40%";
-    quoteElement.style.left = "50%";
-    quoteElement.style.transform = "translate(-50%, -50%)";
-    quoteElement.style.fontSize = "24px";
-    quoteElement.style.color = "white";
-    quoteElement.style.textAlign = "center";
-    document.body.appendChild(quoteElement);
-
-    // Create "Draw Again" button
-    const button = document.createElement("button");
-    button.id = "drawAgainBtn";
-    button.textContent = "Draw Again";
-    button.style.position = "absolute";
-    button.style.top = "50%";
-    button.style.left = "50%";
-    button.style.transform = "translate(-50%, -50%)";
-    button.style.padding = "10px 20px";
-    button.style.fontSize = "16px";
-    button.style.cursor = "pointer";
-    button.style.borderRadius = "5px";
-    button.style.backgroundColor = "#0077b6";
-    button.style.color = "white";
-    button.addEventListener("click", resetCanvas);
-    document.body.appendChild(button);
-}
-
-// Reset the canvas and UI for a new drawing
-function resetCanvas() {
-    // Remove quote and button
     const quoteElement = document.getElementById("quote");
     const button = document.getElementById("drawAgainBtn");
-    if (quoteElement) quoteElement.remove();
-    if (button) button.remove();
 
-    // Clear the canvas and reset transparency
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    ctx.globalAlpha = 1; // Reset alpha to fully opaque
+    quoteElement.innerHTML = randomQuote;
 
-    // Redraw the circular border
-    drawCircularBorder();
-    paths = []; // Reset paths
+    quoteElement.style.display = "block";
+    button.style.display = "block";
+
+    button.addEventListener("click", resetCanvas);
 }
 
-// Ensure the circular border is drawn initially
+
+
+function resetCanvas() {
+    const quoteElement = document.getElementById("quote");
+    const button = document.getElementById("drawAgainBtn");
+
+    quoteElement.style.display = "none";
+    button.style.display = "none";
+
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.globalAlpha = 1;
+
+    drawCircularBorder();
+    paths = [];
+    isReleased = false;
+}
+
+
+
 drawCircularBorder();
